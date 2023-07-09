@@ -8,9 +8,10 @@ class Room:
         self.enter_message = enter_message
         self.occupied_spaces = []
         self.shape = self.get_shape()
-        self.entrance = self.get_wall_space()
-        self.exit = self.get_wall_space()
-        self.objects = {}
+        self.entrance = self.set_entrance_exit()
+        self.exit = self.set_entrance_exit()
+        self.objects = objects
+        self.object_locations = {}
         self.place_objects(objects)
         # super.display_message(self.enter_message)
 
@@ -44,78 +45,93 @@ class Room:
     
 
     def get_random_space(self) -> tuple:
-        '''Reads in the shape dictionary, returns a tuple of random space (row, col) from the available spaces in the shape.'''    
+        '''Reads in the shape dictionary, returns a tuple of random space (row, col) 
+           from the available spaces in the shape.'''    
 
         row_index = random.randint(0, len(self.shape) - 1)  
         row = self.shape[row_index]  
         space = random.choice(row)
         return row_index, space
+
+
+    def get_random_wall_space(self) -> tuple:
+        '''Reads in the shape dictionary, returns a tuple of random space (row, col) 
+           from the available spaces in the shape only if that space is along a wall.'''   
+
+        row_index = random.randint(0, len(self.shape) - 1)  
+        if row_index == 0 or row_index == len(self.shape) - 1:
+            row = self.shape[row_index]  
+            col = random.choice(row)
+            space = (row_index, col)
+            return space
+        else:
+            row = self.shape[row_index]
+            eligible_spaces = []
+            eligible_spaces.append(row[0])
+            eligible_spaces.append(row[-1])
+            col = random.choice(eligible_spaces)
+            space = (row_index, col)
+            return space
+
+
+    def get_space_exists(self, space) -> bool: 
+        '''Takes in a space tuple and checks to see if that space is exists in the current room, returning True or False.'''
+
+        row = space[0]
+        col = row[space[1]]
+        if row in self.shape and col in self.shape[row]:
+            return True
+        return False
     
 
-    # def get_string_repr_space(self, space):
-    #     '''Takes in a space dictionary and returns a string representation of that space to be used for '''
-
-    #     rows = list(space.keys())
-    #     row = rows[0]
-    #     col = str(space[row])
-    #     string_space = f'{row}{col}'
-    #     return string_space
-
-
-    def is_space_occupied(self, space:tuple) -> bool:
-        '''Takes in a space and checks to see if that space is already occupied, returning True or False.'''
+    def is_occupied_space(self, space:tuple) -> bool:
+        '''Takes in a space tuple and checks to see if that space is already occupied, returning True or False.'''
 
         if space in self.occupied_spaces:
             return True
         else:
             return False
-        
+    
 
     def set_occupied_space(self, space) -> None:
-        string_space = self.get_string_repr_space(space)
-        self.occupied_spaces.append(string_space)
+        '''Appends the given space to the occupied spaces list of the room.'''
+
+        self.occupied_spaces.append(space)
 
 
-    def get_wall_space(self) -> dict:
-        '''Takes in instance and returns a space that represents an outermost space
-           in the room ie: along a wall where a entrance/exit door would be. '''
-        
+    def set_entrance_exit(self) -> tuple:
+        '''Calls the get_random_wall_space function, updates the occupied space list with the result, and returns the space.'''
+
         eligible_space_found = False
         while not eligible_space_found:
-            rows_list = [x for x in self.shape.keys()]
-            random_row = random.choice(rows_list)
-            cols_list = [x for x in self.shape[random_row]]
-            exterior_cols_list = []
-            exterior_cols_list.append(cols_list[0])
-            exterior_cols_list.append(cols_list[-1])
-            random_col = random.choice(exterior_cols_list)
-            wall_space = {random_row: random_col}
-            if not self.is_space_occupied(wall_space):
-                self.set_occupied_space(wall_space)
-                return wall_space
+            space = self.get_random_wall_space()
+            if not self.is_occupied_space(space):
+                self.set_occupied_space(space)
+                return space
             else:
                 continue
 
 
     def place_objects(self, objects) -> None:
-        '''Takes in a list of all objects supplied when instantiating the room and stores them in 
-           unique space in the room.'''
+        '''Takes in a list of all objects supplied when instantiating the room and updates
+           the object_locations dictionary to store the name and location of each item or hazard in the room'''
 
         for object in objects:
             eligible_space_found = False
             while not eligible_space_found:
-                space = self.get_space()
-                if not self.is_space_occupied(space):
-                    string_space = self.get_string_repr_space(space)
-                    self.objects.update({string_space: object}) 
+                space = self.get_random_space()
+                if not self.is_occupied_space(space):
                     self.set_occupied_space(space)
+                    self.object_locations.update({object:space})
+                    # self.object_locations.update({object.name , space}) # We'll have to use this line in the end product
                     break
                 else:
                     continue
 
 
     def __repr__(self) -> str:
-        return f'''{self.name} \n {self.shape} \n Entrance: {self.entrance} \n Exit: {self.exit} \n Objects: {self.objects} \n Occupied spaces: {self.occupied_spaces}'''
+        return f'''{self.name} \n Shape: {self.shape} \n Entrance: {self.entrance} \n Exit: {self.exit}
+ Objects: {self.objects} \n Occupied spaces: {self.occupied_spaces} \n Object locations: {self.object_locations}'''
 
 
 
@@ -218,6 +234,6 @@ class Game:
 
 
 if __name__ == '__main__':
-    #  room1 = Room(name='Room 1', enter_message='Hello this is room one', objects = ['object 1', 'object 2'])
-    #  breakpoint()
-    pass
+     room1 = Room(name='Room 1', enter_message='Hello this is room one', objects = ['object 1', 'object 2'])
+     breakpoint()
+    # pass
