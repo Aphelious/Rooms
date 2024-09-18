@@ -8,8 +8,8 @@ class Room:
         self.enter_message = enter_message
         self.occupied_spaces = []
         self.shape = self.get_shape()
-        self.entrance = self.set_entrance_exit()
-        self.exit = self.set_entrance_exit()
+        self.entrance = self.get_random_wall_space()
+        self.exit = self.get_random_wall_space()
         self.objects = objects
         self.object_locations = {}
         self.place_objects(objects)
@@ -136,26 +136,37 @@ class Room:
 
 
 class Map:
-
+    '''Class to store all the rooms and their connections, which form a graph.'''
 
     def __init__(self, rooms) -> None:
-        self.rooms = [Room(room) for room in rooms.rooms]
-        self.entrances_and_exits_list = self.get_entrances_and_exits()
+        self.rooms = rooms
+        self.room_connections_list = self.get_entrances_and_exits()
+        self.room_graph = self.build_room_graph()
+
+    #[{'room1': (1,2), 'room2': (2,3)}
+    # Need a way of connecting the rooms together that we'll be able to retieve data from later as the player moves through
+    # the map. Specifically I'm wondering if the connection between rooms is better stored at the space level
+    # 
+
+    def build_room_graph(self) -> dict:
+        room_number = len(self.rooms)
 
 
     def get_entrances_and_exits(self) -> list:
         entrances_and_exits = []
         for room in self.rooms:
-            entrances_and_exits.append(room.entrance, room.exit)
+            entrances_and_exits.append(room.entrance)
+            entrances_and_exits.append(room.exit)
         return entrances_and_exits
 
 
 
 class Player:
-    def __init__(self, stats:dict) -> None:
-        self.backpack = Backpack()
+    def __init__(self, items) -> None:
+        # self.backpack = Backpack()
+        self.name = 'Mike'
+        self.items = items
         self.current_space = None
-        self.stats = stats
 
 
     def move(self, direction:str, wall_message) -> None:
@@ -184,56 +195,172 @@ class Player:
             else:
                 return wall_message
 
+    @staticmethod
+    def format_item_name(item_name):
+        return item_name.lower().replace(' ', '_')
+    
 
-    def inspect_item(self):
-        pass
+    def get_active_items(self) -> list:
+        return [x.name for x in self.items.values() if x.is_active]
 
 
-    def store_item(self):
-        pass
+    def is_item_active(self, item_name):
+        print(self.items[item_name].is_active)
+
+
+    def validate_item(self, item_name):
+        item_name = self.format_item_name(item_name)
+        active_items = self.get_active_items()
+        if item_name in active_items:
+            return True
+        return False
+
+
+    def describe_item(self, item_name):
+        if self.validate_item(item_name):
+            print(self.items[item_name].print_item_description())
+        else:
+            print(f'You don\'t have "{item_name.lower()}"')
+
+
+    def read_item(self, item_name):
+        if self.validate_item(item_name):
+            print(self.items[item_name].item_writing)
+        else:
+            print(f'You don\'t have "{item_name.lower()}"')
+
+
+    def inspect_item_attribute(self, item_name, attribute):
+        if attribute in self.items[item_name].attributes.keys():
+            attribute_name = self.items[item_name].attributes[attribute]
+            print(self.items[attribute_name].item_description)
+        else:
+            print(f'Cannot inspect "{attribute}"')
+
+
+    def list_items(self):
+        for name,item in self.items.items():
+            if item.is_active:
+                print(item.name)
+
+
+    def list_inventory(self):
+        for name,item in self.items.items():
+            if item.is_active and not item.parent_item:
+                print(item.display_name)
+
+
+    def parse_effects_dict(self, effects_dict):
+        # "effects": {'brass_key_piece_1': 'deactivate',  
+        #             'brass_key_piece_2': 'deactivate',
+        #             'brass_key_full': 'activate'}
+        for k,v in effects_dict.items():
+            if v == 'deactivate':
+                print('parse_effects_dict')
+                self.items[k].deactivate()
+            if v == 'activate':
+                self.items[k].activate()
+
+
+    def use_item(self, use_item:str, on_item:str):
+        active_items = self.get_active_items()
+        if not use_item in active_items:
+            print(f'You don\'t have "{use_item}"')
+        elif not on_item in active_items:
+            print(f'You don\'t have "{on_item}"')
+        if on_item in self.items[use_item].interactions.keys():
+            # new_item = on_item.interactions[use_item.name]['produces']
+            # if new_item:
+            #     something?
+            self.parse_effects_dict(self.items[use_item].interactions[on_item]['effects'])
+            print(self.items[use_item].interactions[on_item]["message"])
+        else:
+            print(f'{use_item} cannot be used on {on_item}.')
+
+
+    def combine_items(self, item1, item2):
+        if item1.name in item2.combinations.keys() and item2.name in item1.combinations.keys():
+            print(item1.combinations[item2.name]["message"])
+            new_item = self.items[item1.combinations[item2.name]["produces"]]
+            new_item.activate()
+            new_item.print_item_description()
+            item1.deactivate()
+            item2.deactivate()
+        else:
+            return 'There was no effect.'
 
 
 class Backpack:
-    def __init__(self) -> None:
+    def __init__(self):
         self.total_slots = 3
         self.occupied_slots = 0
 
 
 class Item:
-    def __init__(self, initial_message, inspect_message) -> None:
-        self.initial_message = initial_message
-        self.inspect_message = inspect_message
+    def __init__(self, dict):
+        self.name = dict.get("name", None)
+        self.display_name = dict.get("display_name", None)
+        self.parent_item = dict.get("parent_item", None)
+        self.is_storable = dict.get("is_storable", None)
+        self.is_active = dict.get("is_active", None)
+        self.is_hazard = dict.get("is_hazard", None)
+        self.item_description = dict.get("item_description", None)
+        self.item_writing = dict.get("item_writing", None)
+        self.attributes = dict.get("attributes", None)
+        self.interactions = dict.get("interactions", None)
+        self.combinations = dict.get("combinations", None)
+        self.effects = dict.get("effects", None)
 
+
+    def deactivate(self):
+        self.is_active = False
+
+    def activate(self):
+        self.is_active = True
+
+    def print_item_description(self):
+        print(self.item_description)
+
+
+    
 
 class Hazard:
     def __init__(self, initial_message, inspect_message) -> None:
         self.initial_message = initial_message
         self.inspect_message = inspect_message
+        self.attributes = []
+        self.interactions = []
 
 
 class Game:
     '''The main class in the game.'''
 
-    def __init__(self, rooms) -> None:
-        self.map = Map()
-        self.player = Player()
-        self.game() 
+    def __init__(self, map, player) -> None:
+        self.map = map
+        self.player = player
+        # self.game() 
+        breakpoint()
 
+
+    def display_message(message):
+        time.sleep(0.5)
+        return message
+    
 
     def game(self):
         '''The main game loop'''
 
         game_in_progress = True
         while game_in_progress != False:
-            pass
-
-
-    def display_message(message):
-        time.sleep(0.5)
-        return message
+            self.player.current_space = self.map.current_room.entrance
+            pass 
 
 
 if __name__ == '__main__':
-     room1 = Room(name='Room 1', enter_message='Hello this is room one', objects = ['object 1', 'object 2'])
-     breakpoint()
+    room1 = Room(name='Room 1', enter_message='Hello this is room one', objects=['object 1', 'object 2'])
+    room2 = Room(name='Room 2', enter_message='Hello this is room two', objects=['object 3', 'object 4'])
+    map = Map([room1, room2])
+    player = Player()
+    game = Game(map, player)
+    # breakpoint()
     # pass
