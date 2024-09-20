@@ -2,6 +2,7 @@ import random
 import time
 import os
 import logging
+from copy import copy
 
 class Room:
     def __init__(self, room_dict:dict) -> None:
@@ -237,7 +238,7 @@ class Map:
 class Player:
     def __init__(self, items_dict) -> None:
         self.name = 'Mike'
-        self.items = items_dict
+        self.items = items_dict # {item name: item object}
 
 
     @staticmethod
@@ -246,7 +247,11 @@ class Player:
     
 
     def get_active_items(self) -> list:
-        return [x.name for x in self.items.values() if x.is_active]
+        active_items = {}
+        for name, item in self.items.items():
+            if item.is_active:
+                active_items[name] = item
+        return active_items
 
 
     def is_item_active(self, item_name):
@@ -255,8 +260,8 @@ class Player:
 
     def validate_item(self, item_name):
         item_name = self.format_item_name(item_name)
-        active_items = self.get_active_items()
-        if item_name in active_items:
+        active_items_names = [x.name for x in self.get_active_items().values()]
+        if item_name in active_items_names:
             return True
         return False
 
@@ -283,13 +288,7 @@ class Player:
             print(f'Cannot inspect "{attribute}"')
 
 
-    def list_items(self):
-        for name,item in self.items.items():
-            if item.is_active:
-                print(item.name)
-
-
-    def list_inventory(self):
+    def check_inventory(self):
         print('You have the following items in your sachel:\n')
         for name,item in self.items.items():
             if item.is_active and not item.parent_item:
@@ -384,29 +383,76 @@ class Game:
         self.main_menu = {
             'input_message': '\nWhat do you want to do?',
             'options': {
-            '1': 'move',
-            '2': 'enter inventory'
+            '1': 'Move',
+            '2': 'Enter inventory'
         }}
         self.move_menu = {
             'input_message': '\nWhich direction do you want to move?',
             'options': {
-            '8': 'north',
-            '6': 'east',
-            '2': 'south',
-            '4': 'west'
+            '8': 'North',
+            '6': 'East',
+            '2': 'South',
+            '4': 'West'
         }}
+        # self.inventory_menu = {
+        #     'input_message': '\nWhat do you want to do in the inventory?\nYou can Read, Inspect, Use, or Combine items.',
+        #     'options': {
+        #     '1': 'Read item',
+        #     '2': 'Inspect item',
+        #     '3': 'Use item',
+        #     '4': 'Combine items'
+        # }}
         self.game = self.game()
 
 
     def display_message(message):
         time.sleep(0.5)
         return message
+
+     
+    def construct_current_items_menu(self, input_message:str='\nWhich item?'):
+        items_menu = {
+            'input_message': input_message,
+            'options': {}
+        }
+        for i, item_tuple in enumerate(self.player.items.items()):
+            item_name = item_tuple[0]
+            item_object = item_tuple[1]
+            if item_object.is_active and not item_object.parent_item:
+                items_menu['options'][str(i+1)] = item_object
+        return items_menu
+
     
     @staticmethod
     def display_menu(menu):
         print(menu['input_message'])
         for k,v in menu['options'].items():
-            print(f'{k}. {v}')
+            if type(v) == Item:
+                print(f'{k}. {v.display_name}')
+            else:
+                print(f'{k}. {v}')
+
+    
+    def parse_item_instructions(self, raw_item_instructions:str):
+        # Preformat the input:
+        sanitized_item_instructions = raw_item_instructions.lower()
+        tokens = sanitized_item_instructions.split(' ')
+        verbs = {'read', 'inspect', 'use', 'combine'}
+        prepositions = {'on', 'with', 'and'}
+
+        # If one and only one word in the instructions isn't a predefined verb, reject:
+        if not verbs.intersection(tokens) or not len(verbs.intersection(tokens)) == 1:
+            print(f'"{raw_item_instructions}" is not possible.')
+
+        # Consider what is actually active for the player:
+        active_objects = self.player.get_active_items()
+        objects = [x for x in tokens if x not in verbs]
+        objects = [x for x in objects if x not in prepositions]
+
+        # Need a valid combination of verbs and item names, or verbs-item names-attributes to work
+        breakpoint()
+        
+
 
     def clear_screen(self):
         # check and make call for specific operating system
@@ -420,6 +466,7 @@ class Game:
 
         game_in_progress = True
 
+        self.clear_screen()
         print('Welcome to the game!\n')
         print(self.map.current_room.enter_message)
         while game_in_progress != False:
@@ -477,7 +524,38 @@ class Game:
                     
             if selection == '2':
                 self.clear_screen()
-                self.player.list_inventory()
+                self.player.check_inventory()
+                # self.display_menu(self.inventory_menu)
+                item_instructions = input('\nWhat do you want to do in the inventory?\nYou can Read, Inspect, Use, or Combine items.\n\n')
+                self.parse_item_instructions(item_instructions)
+                # if selection == '1':
+                #     self.clear_screen()
+                #     items_menu = self.construct_current_items_menu('Which item do you want to read?')
+                #     self.display_menu(items_menu)
+                #     selection = input()
+                #     self.clear_screen()
+                #     print(items_menu['options'][selection].item_writing)
+                # if selection == '2':
+                #     self.clear_screen()
+                #     self.display_menu(self.construct_current_items_menu('Which item do you want to inspect?'))
+                #     self.display_menu(items_menu)
+                #     selection = input('Describe what you want to inspect')
+                #     self.clear_screen()
+                #     print(items_menu['options'][selection].item_writing)
+                # if selection == '3':
+                #     self.clear_screen()
+                #     self.display_menu(self.construct_current_items_menu('Which item do you want to use?'))
+                #     self.display_menu(items_menu)
+                #     selection = input()
+                #     self.clear_screen()
+                #     print(items_menu['options'][selection].item_writing)
+                # if selection == '4':
+                #     self.clear_screen()
+                #     self.display_menu(self.construct_current_items_menu('Which item do you want to combine?'))
+                #     self.display_menu(items_menu)
+                #     selection = input()
+                #     self.clear_screen()
+                #     print(items_menu['options'][selection].item_writing)
                 continue
 
             

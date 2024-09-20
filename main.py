@@ -1,4 +1,3 @@
-import random
 from rooms import rooms
 from objects import items
 from classes import *
