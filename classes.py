@@ -9,12 +9,12 @@ class Room:
         self.enter_message = room_dict["enter_message"]
         self.wall_message = room_dict["wall_message"]
         self.empty_space_message = room_dict["empty_space_message"]
-        self.occupied_spaces = []
+        self.objects = room_dict["objects"]
         self.shape = self.get_shape()
         self.entrance = self.get_random_wall_space()
         self.exit = self.get_random_wall_space()
-        self.objects = room_dict["objects"]
-        self.object_locations = {}
+        self.object_locations = {}  # stores locations of all objects and entrance and exit
+        self.set_entrance_and_exit()
         self.place_objects(self.objects)
 
 
@@ -89,45 +89,36 @@ class Room:
     
 
     def check_space_occupied(self, space:dict) -> bool:
-        '''Takes in a space tuple and checks to see if that space is already occupied, returning True or False.'''
+        '''Takes in a space dict and checks to see if that space is already occupied, returning True or False.'''
 
-        if space in self.occupied_spaces:
+        if self.convert_space_dict_to_tuple(space) in self.object_locations.keys():
             return True
         else:
             return False
-    
-
-    def set_occupied_space(self, space) -> None:
-        '''Appends the given space to the occupied spaces list of the room.'''
-
-        self.occupied_spaces.append(space)
 
 
-    def set_entrance_exit(self) -> tuple:
-        '''Calls the get_random_wall_space function, updates the occupied space list with the result, and returns the space.'''
+    def convert_space_dict_to_tuple(self, space):
+        row = space["Row"]
+        col = space["Column"]
+        return (row, col)
 
-        eligible_space_found = False
-        while not eligible_space_found:
-            space = self.get_random_wall_space()
-            if not self.check_space_occupied(space):
-                self.set_occupied_space(space)
-                return space
-            else:
-                continue
+
+    def set_entrance_and_exit(self):
+        self.object_locations[self.convert_space_dict_to_tuple(self.entrance)] = 'Entrance'
+        self.object_locations[self.convert_space_dict_to_tuple(self.exit)]= 'Exit'
 
 
     def place_objects(self, objects) -> None:
         '''Takes in a list of all objects supplied when instantiating the room and updates
-           the object_locations dictionary to store the name and location of each item or hazard in the room'''
+           the object_locations dictionary to store the location:name of each item, hazard,
+           entrance, and exit in the room'''
 
         for object in objects:
             eligible_space_found = False
             while not eligible_space_found:
                 space = self.get_random_space()
                 if not self.check_space_occupied(space):
-                    self.set_occupied_space(space)
-                    self.object_locations.update({object:space})
-                    # self.object_locations.update({object.name , space}) # We'll have to use this line in the end product
+                    self.object_locations.update({self.convert_space_dict_to_tuple(space):object})
                     break
                 else:
                     continue
@@ -135,8 +126,7 @@ class Room:
 
     def __repr__(self) -> str:
         return f'''{self.name} \n Shape: {self.shape} \n Entrance: {self.entrance} \n Exit: {self.exit}
- Objects: {self.objects} \n Occupied spaces: {self.occupied_spaces} \n Object locations: {self.object_locations}'''
-
+ Objects: {self.objects} \n Object locations: {self.object_locations}\n'''
 
 
 class Map:
@@ -144,65 +134,105 @@ class Map:
 
     def __init__(self, rooms) -> None:
         self.rooms = rooms
-        self.room_connections_list = self.get_entrances_and_exits() # not sure we need this
-        self.room_graph = self.build_room_graph()
         self.current_room = random.choice(self.rooms)
         self.player_current_space = self.current_room.entrance
 
 
-    #[{'room1': (1,2), 'room2': (2,3)}
-    # Need a way of connecting the rooms together that we'll be able to retieve data from later as the player moves through
-    # the map. Specifically I'm wondering if the connection between rooms is better stored at the space level
-    # 
-    def move_player(self, direction:str) -> None:
-        if direction.lower() == 'east':
-            {'Row': 2, 'Column': -2}
-            new_space = {"Row":self.player_current_space["Row"], "Column":self.player_current_space["Column"] + 1}  # change column by adding 1
-            if self.current_room.check_space_exists(new_space):
-                self.player_current_space = new_space
-                if not self.current_room.check_space_occupied(new_space):
-                    print(self.current_room.empty_space_message)
-                else:
-                    return 'Occupied'
-            else:
-                print(self.current_room.wall_message)
-                return 
-        if direction.lower() == 'west':
-            new_space = {"Row":self.player_current_space["Row"], "Column":self.player_current_space["Column"] - 1}  # change column by sub 1
-            if self.current_room.check_space_exists(new_space):
-                self.player_current_space = new_space
-                if not self.current_room.check_space_occupied(new_space):
-                    print(self.current_room.empty_space_message)
-                else:
-                    return 'Occupied'
-            else:
-                print(self.current_room.wall_message)
-                return
-        if direction.lower() == 'north':
-            new_space = {"Row":self.player_current_space["Row"] + 1, "Column":self.player_current_space["Column"]}  # change row by add 1
-            if self.current_room.check_space_exists(new_space):
-                self.player_current_space = new_space
-                if not self.current_room.check_space_occupied(new_space):
-                    print(self.current_room.empty_space_message)
-                else:
-                    return 'Occupied'
-            else:
-                print(self.current_room.wall_message)
-                return
-        if direction.lower() == 'south':
-            new_space = {"Row":self.player_current_space["Row"] - 1, "Column":self.player_current_space["Column"]} #  # change row by sub 1
-            if self.current_room.check_space_exists(new_space):
-                self.player_current_space = new_space
-                if not self.current_room.check_space_occupied(new_space):
-                    print(self.current_room.empty_space_message)
-                else:
-                    return 'Occupied'
-            else:
-                print(self.current_room.wall_message)
-                return
+    def move_north(self):
+        new_space = {"Row":self.player_current_space["Row"] + 1, "Column":self.player_current_space["Column"]}  # change row by add 1
+        if self.current_room.check_space_exists(new_space):
+            self.player_current_space = new_space
+            return new_space
+        else:
+            print(self.current_room.wall_message)
+            return
 
-    def build_room_graph(self) -> dict:
-        room_number = len(self.rooms)
+
+    def move_east(self):
+        new_space = {"Row":self.player_current_space["Row"], "Column":self.player_current_space["Column"] + 1}  # change column by adding 1
+        if self.current_room.check_space_exists(new_space):
+            self.player_current_space = new_space
+            return new_space
+        else:
+            print(self.current_room.wall_message)
+            return
+
+
+    def move_south(self):
+        new_space = {"Row":self.player_current_space["Row"] - 1, "Column":self.player_current_space["Column"]} #  # change row by sub 1
+        if self.current_room.check_space_exists(new_space):
+            self.player_current_space = new_space
+            return new_space
+        else:
+            print(self.current_room.wall_message)
+            return
+
+
+    def move_west(self):
+        new_space = {"Row":self.player_current_space["Row"], "Column":self.player_current_space["Column"] - 1}  # change column by sub 1
+        if self.current_room.check_space_exists(new_space):
+            self.player_current_space = new_space
+        else:
+            print(self.current_room.wall_message)
+            return
+
+
+    def move_player(self, direction:str) -> None:
+        if direction == 'north':
+            new_space = self.move_north()
+            if not new_space:
+                return
+            if not self.current_room.check_space_occupied(new_space):
+                print(self.current_room.empty_space_message)
+            else:
+                ()
+                object_name = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
+                if object_name in ('Entrance', 'Exit'):
+                    print('You see a door, walk through it?')
+                else:
+                    return object_name
+
+        if direction == 'east':
+            new_space = self.move_east()
+            if not new_space:
+                return
+            if not self.current_room.check_space_occupied(new_space):
+                    print(self.current_room.empty_space_message)
+            else:
+                ()
+                object = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
+                if object in ('Entrance', 'Exit'):
+                    print('You see a door, walk through it?')
+                else:
+                    return object_name
+            
+        if direction == 'west':
+            new_space = self.move_west()
+            if not new_space:
+                return
+            if not self.current_room.check_space_occupied(new_space):
+                print(self.current_room.empty_space_message)
+            else:
+                ()
+                object = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
+                if object in ('Entrance', 'Exit'):
+                    print('You see a door, walk through it?')
+                else:
+                    return object_name
+
+        if direction == 'south':
+            new_space = self.move_south()
+            if not new_space:
+                return
+            if not self.current_room.check_space_occupied(new_space):
+                print(self.current_room.empty_space_message)
+            else:
+                ()
+                object = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
+                if object in ('Entrance', 'Exit'):
+                    print('You see a door, walk through it?')
+                else:
+                    return object_name
 
 
     def get_entrances_and_exits(self) -> list:
@@ -215,10 +245,9 @@ class Map:
 
 
 class Player:
-    def __init__(self, items) -> None:
-        # self.backpack = Backpack()
+    def __init__(self, items_dict) -> None:
         self.name = 'Mike'
-        self.items = items
+        self.items = items_dict
 
 
     @staticmethod
@@ -273,8 +302,8 @@ class Player:
     def list_inventory(self):
         print('You have the following items in your sachel:\n')
         for name,item in self.items.items():
-            if item["is_active"] and not item["parent_item"]:
-                print(item["display_name"])
+            if item.is_active and not item.parent_item:
+                print(item.display_name)
 
 
     def parse_effects_dict(self, effects_dict):
@@ -414,20 +443,40 @@ class Game:
                 selection = input()
                 if selection == '8':
                     self.clear_screen()
-                    if not self.map.move_player('north'):
+                    object_name = self.map.move_player('north')
+                    if not object_name:
                         continue
+                    else:
+                        object = self.player.items[object_name]
+                        print(f'You found a {object.display_name}!\n{object.item_description}')
+                        object.activate()
                 if selection == '6':
                     self.clear_screen()
-                    if not self.map.move_player('east'):
+                    object_name = self.map.move_player('east')
+                    if not object_name:
                         continue
+                    else:
+                        object = self.player.items[object_name]
+                        print(f'You found a {object.display_name}!\n{object.item_description}')
+                        object.activate()
                 if selection == '2':
                     self.clear_screen()
-                    if not self.map.move_player('south'):
+                    object_name = self.map.move_player('south')
+                    if not object_name:
                         continue
+                    else:
+                        object = self.player.items[object_name]
+                        print(f'You found a {object.display_name}!\n{object.item_description}')
+                        object.activate()
                 if selection == '4':
                     self.clear_screen()
-                    if not self.map.move_player('west'):
+                    object_name = self.map.move_player('west')
+                    if not object_name:
                         continue
+                    else:
+                        object = self.player.items[object_name]
+                        print(f'You found a {object.display_name}!\n{object.item_description}')
+                        object.activate()
                     
             if selection == '2':
                 self.clear_screen()
@@ -440,4 +489,4 @@ class Game:
             
 if __name__ == '__main__':
     room = Room('room 1', 'hello', [])
-    breakpoint()
+    ()
