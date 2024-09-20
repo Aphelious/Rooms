@@ -172,6 +172,7 @@ class Map:
         new_space = {"Row":self.player_current_space["Row"], "Column":self.player_current_space["Column"] - 1}  # change column by sub 1
         if self.current_room.check_space_exists(new_space):
             self.player_current_space = new_space
+            return new_space
         else:
             print(self.current_room.wall_message)
             return
@@ -185,26 +186,18 @@ class Map:
             if not self.current_room.check_space_occupied(new_space):
                 print(self.current_room.empty_space_message)
             else:
-                ()
-                object_name = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
-                if object_name in ('Entrance', 'Exit'):
-                    print('You see a door, walk through it?')
-                else:
-                    return object_name
+                object_name = self.get_object_name(new_space)
+                return object_name
 
         if direction == 'east':
             new_space = self.move_east()
             if not new_space:
                 return
             if not self.current_room.check_space_occupied(new_space):
-                    print(self.current_room.empty_space_message)
+                print(self.current_room.empty_space_message)
             else:
-                ()
-                object = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
-                if object in ('Entrance', 'Exit'):
-                    print('You see a door, walk through it?')
-                else:
-                    return object_name
+                object_name = self.get_object_name(new_space)
+                return object_name
             
         if direction == 'west':
             new_space = self.move_west()
@@ -213,12 +206,8 @@ class Map:
             if not self.current_room.check_space_occupied(new_space):
                 print(self.current_room.empty_space_message)
             else:
-                ()
-                object = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
-                if object in ('Entrance', 'Exit'):
-                    print('You see a door, walk through it?')
-                else:
-                    return object_name
+                object_name = self.get_object_name(new_space)
+                return object_name
 
         if direction == 'south':
             new_space = self.move_south()
@@ -227,12 +216,13 @@ class Map:
             if not self.current_room.check_space_occupied(new_space):
                 print(self.current_room.empty_space_message)
             else:
-                ()
-                object = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
-                if object in ('Entrance', 'Exit'):
-                    print('You see a door, walk through it?')
-                else:
-                    return object_name
+                object_name = self.get_object_name(new_space)
+                return object_name
+
+
+    def get_object_name(self, new_space):
+        object_name = self.current_room.object_locations[self.current_room.convert_space_dict_to_tuple(new_space)]
+        return object_name
 
 
     def get_entrances_and_exits(self) -> list:
@@ -395,8 +385,7 @@ class Game:
             'input_message': '\nWhat do you want to do?',
             'options': {
             '1': 'move',
-            '2': 'check inventory',
-            '3': 'use item'
+            '2': 'enter inventory'
         }}
         self.move_menu = {
             'input_message': '\nWhich direction do you want to move?',
@@ -446,6 +435,8 @@ class Game:
                     object_name = self.map.move_player('north')
                     if not object_name:
                         continue
+                    elif object_name in ('Entrance', 'Exit'):
+                        print('You see a door, walk through it?')
                     else:
                         object = self.player.items[object_name]
                         print(f'You found a {object.display_name}!\n{object.item_description}')
@@ -455,6 +446,8 @@ class Game:
                     object_name = self.map.move_player('east')
                     if not object_name:
                         continue
+                    elif object_name in ('Entrance', 'Exit'):
+                        print('You see a door, walk through it?')
                     else:
                         object = self.player.items[object_name]
                         print(f'You found a {object.display_name}!\n{object.item_description}')
@@ -464,6 +457,8 @@ class Game:
                     object_name = self.map.move_player('south')
                     if not object_name:
                         continue
+                    elif object_name in ('Entrance', 'Exit'):
+                        print('You see a door, walk through it?')
                     else:
                         object = self.player.items[object_name]
                         print(f'You found a {object.display_name}!\n{object.item_description}')
@@ -473,6 +468,8 @@ class Game:
                     object_name = self.map.move_player('west')
                     if not object_name:
                         continue
+                    elif object_name in ('Entrance', 'Exit'):
+                        print('You see a door, walk through it?')
                     else:
                         object = self.player.items[object_name]
                         print(f'You found a {object.display_name}!\n{object.item_description}')
@@ -482,10 +479,7 @@ class Game:
                 self.clear_screen()
                 self.player.list_inventory()
                 continue
-            if selection == '3':
-                self.clear_screen()
-                print('You chose to use an item but this feature is not implemented yet')
-                continue
+
             
 if __name__ == '__main__':
     room = Room('room 1', 'hello', [])
