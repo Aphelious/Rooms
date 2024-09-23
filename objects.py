@@ -2,8 +2,8 @@
 # including items as well as hazards. The game will read this file in order to randomly 
 # populate each room with objects
 
-## Here the game action will be something like player calls use_item(brass_key) on brass_lock
-## use_item() looks at the interactions attribute of brass key, looping through the dictionary keys
+## Here the game action will be something like player calls use_item(Metal_key) on Metal_lock
+## use_item() looks at the interactions attribute of Metal key, looping through the dictionary keys
 ## to see if the item receieving that action has an interaction
 
 # Players can 
@@ -29,69 +29,62 @@
 
 
 items = {
-    'lighter': {
-    'name': 'lighter',
-    'display_name':'Lighter',
+    'Lighter': {
+    'name': 'Lighter',
     'parent_item': None,
     'is_storable': True,
     'is_active': True,
-    'item_description': 'A brass lighter, it works but it\'s not clear how much fuel is left',
-    'item_writing': 'There\'s nothing to read.',
+    'item_description': 'A brass lighter, it works but it\'s not clear how much fuel is left\n',
+    'item_writing': 'There\'s nothing to read.\n',
     'attributes': None,
-    'interactions': {'torn_paper_1': {"produces": None,
-                                      "message": 'The flame tears through the paper until it is nothing but ash',
-                                      "effects": {'torn_paper_1':'deactivate'}
+    'interactions': {'Torn Paper 1': {"message": 'The flame tears through the paper until it is nothing but ash\n',
+                                      "effects": {'Torn Paper 1':'deactivate'}
                                      },
-                    'torn_paper_2': {"produces": None,
-                                     "message": 'The flame tears through the paper until it is nothing but ash',
-                                     "effects": {'torn_paper_2':'deactivate'}
+                     'Torn Paper 2': {"message": 'The flame tears through the paper until it is nothing but ash\n',
+                                     "effects": {'Torn Paper 2':'deactivate'}
                                      },
-                    'full_paper': {"produces": None,
-                                   "message": 'The flame tears through the paper until it is nothing but ash',
-                                   "effects": {'full_paper':'deactivate'}
-                                  }},
+                       'Full Paper': {"message": 'The flame tears through the paper until it is nothing but ash\n',
+                                      "effects": {'Full Paper':'deactivate'}
+                                     }},
     'combinations': None,
     'effects': None
     },
-    'torn_paper_1': {
-    'name': 'torn_paper_1',
-    'display_name':'Torn paper 1',
+    'Torn Paper 1': {
+    'name': 'Torn Paper 1',
     'parent_item': None,
     'is_storable': True,
-    'is_active': False,
+    'is_active': True,
     'item_description': 'An old, stained piece of parchment, a section is torn away on the bottom.',
     'item_writing': '''It reads: "I don't have enough time to explain everything \n just know this: the Paxilon-487 is not safe, it" but the rest has been torn off.''',
-    'attributes': ['back of parchment'],
+    'attributes': {'back of parchment': 'The back of the parchment reads "3490" in hand-written ink but the sequence may continue on the torn section.',
+                   'back of paper': 'The back of the parchment reads "3490" in hand-written ink but the sequence may continue on the torn section.'},
     'interactions': None,
-    'combinations': {'torn_paper_2': {"produces": 'full_paper',
-                                       "message": 'The two papers combine to form the whole. ',
-                                       "effects": {'torn_paper_1': "deactivate",
-                                                   'torn_paper_2': "deactivate",
-                                                   'full_paper': "activate"}
+    'combinations': {'Torn Paper 2': {"message": 'The two papers combine to form the whole.',
+                                      "effects": {'Torn Paper 1': "deactivate",
+                                                  'Torn Paper 2': "deactivate",
+                                                  'Full Paper': "activate"}
                                       }},
     'effects': None
     },
-    'torn_paper_2': {
-    'name': 'torn_paper_2',
-    'display_name':'Torn paper 2',
+    'Torn Paper 2': {
+    'name': 'Torn Paper 2',
     'parent_item': None,
     'is_storable': True,
     'is_active': False,
     'item_description': 'An old, stained piece of parchment, a section is torn away on the top.',
     'item_writing': '''It reads: "causes an aggresive change in the bio-chemistry of the test subjects. Consider them extremely dangerous!''',
-    'attributes': ['back of parchment'],
+    'attributes': {'back of parchment': 'Back of Torn Paper 2',
+                   'back of paper': 'Back of Torn Paper 2'},
     'interactions': None,
-    'combinations': {'torn_paper_1': {"produces": 'full_paper',
-                                      "message": 'The two papers combine to form the whole.',
-                                      "effects": {'torn_paper_1': "deactivate",
-                                                  'torn_paper_2': "deactivate",
-                                                  'full_paper': "activate"}
+    'combinations': {'Torn Paper 1': {"message": 'The two papers combine to form the whole.',
+                                      "effects": {'Torn Paper 1': "deactivate",
+                                                  'Torn Paper 2': "deactivate",
+                                                  'Full Paper': "activate"}
                                       }},
     'effects': None
     },
-    'full_paper': {
-    'name': 'full_paper',
-    'display_name':'Full paper',
+    'Full Paper': {
+    'name': 'Full Paper',
     'parent_item': None,
     'is_storable': True,
     'is_active': False,
@@ -101,125 +94,190 @@ items = {
     just know this: the Paxilon-487 is not safe, it causes an aggresive
     change in the bio-chemistry of the test subjects. Consider them extremely dangerous!
     ''',
-    'attributes': {'back of parchment': 'full_paper_back',
-                   'back of paper': 'full_paper_back'},
+    'attributes': {'back of parchment': 'The back of the parchment reads "349077" in hand-written ink.',
+                   'back of paper': 'The back of the parchment reads "349077" in hand-written ink.'},
     'interactions': None,
     'combinations': None,
     'effects': None
     },
-    'torn_paper_1_back': {
-    'name': 'torn_paper_1_back',
-    'display_name':'Back of torn paper 1',
-    'parent_item': 'torn_paper_1',
-    'is_storable': False,
-    'is_active': False,
-    'item_description': 'The back of the parchment reads "3490" in hand-written ink but the sequence may continue on the torn section.',
-    'item_writing': 'The back of the parchment reads "3490" in hand-written ink but the sequence may continue on the torn section.',
-    'attributes': None,
-    'interactions': None,
-    'combinations': None,
-    'effects': None
-    },
-    'torn_paper_2_back': {
-    'name': 'torn_paper_2_back',
-    'display_name':'Back of torn paper 2',
-    'parent_item': 'torn_paper_2',
-    'is_storable': False,
-    'is_active': False,
-    'item_description': 'The back of the parchment reads "77" in hand-written ink but the sequence may continue on the torn section.',
-    'item_writing': 'The back of the parchment reads "77" in hand-written ink but the sequence may continue on the torn section.',
-    'attributes': None,
-    'interactions': None,
-    'combinations': None,
-    'effects': None
-    },
-    'full_paper_back': {
-    'name': 'full_paper_back',
-    'display_name':'Back of full paper',
-    'parent_item': 'torn_paper_2',
-    'is_storable': False,
-    'is_active': False,
-    'item_description': 'The back of the parchment reads "349077" in hand-written ink.',
-    'item_writing': 'The back of the parchment reads "349077" in hand-written ink.',
-    'attributes': None,
-    'interactions': None,
-    'combinations': None,
-    'effects': None
-    },
-    'brass_key_piece_1': {
-    'name': 'brass_key_piece_1',
-    'display_name':'Brass key fragment 1',
+    # 'Back of Torn Paper 1': {
+    # 'name': 'Back of Torn Paper 1',
+    # 'parent_item': 'Torn Paper 1',
+    # 'is_storable': False,
+    # 'is_active': False,
+    # 'item_description': 'The back of the parchment reads "3490" in hand-written ink but the sequence may continue on the torn section.',
+    # 'item_writing': 'The back of the parchment reads "3490" in hand-written ink but the sequence may continue on the torn section.',
+    # 'attributes': None,
+    # 'interactions': None,
+    # 'combinations': None,
+    # 'effects': None
+    # },
+    # 'Back of Torn Paper 2': {
+    # 'name': 'Back of Torn Paper 2',
+    # 'parent_item': 'Torn Paper 2',
+    # 'is_storable': False,
+    # 'is_active': False,
+    # 'item_description': 'The back of the parchment reads "77" in hand-written ink but the sequence may continue on the torn section.',
+    # 'item_writing': 'The back of the parchment reads "77" in hand-written ink but the sequence may continue on the torn section.',
+    # 'attributes': None,
+    # 'interactions': None,
+    # 'combinations': None,
+    # 'effects': None
+    # },
+    # 'Back of Full Paper': {
+    # 'name': 'Back of Full Paper',
+    # 'parent_item': 'Torn Paper 2',
+    # 'is_storable': False,
+    # 'is_active': False,
+    # 'item_description': 'The back of the parchment reads "349077" in hand-written ink.',
+    # 'item_writing': 'The back of the parchment reads "349077" in hand-written ink.',
+    # 'attributes': None,
+    # 'interactions': None,
+    # 'combinations': None,
+    # 'effects': None
+    # },
+    'Metal Key Fragment 1': {
+    'name': 'Metal Key Fragment 1',
     'parent_item': None,
     'is_storable': True,
     'is_active': False,
-    'item_description': 'A brass key, nothing very remarkable other than the teeth, some of which appear to have been snapped off.',
+    'item_description': 'A metal key, nothing very remarkable other than the teeth, some of which appear to have been snapped off.',
     'item_writing': 'There\'s nothing to read.',
     'attributes': {"teeth": 'Some of the teeth appear to have been snapped off cleanly.'},
-    'interactions':{'Brass Lock': {"produces": None,
-                                    "message": 'The key enters the lock but doesn\'t turn.',
+    'interactions':{'Metal Lock': {"message": 'The key enters the lock but doesn\'t turn.',
                                     "effects": None
                                    },
-                    ('lighter', 'solder'): {"produces": None,
-                                            "message": 'The key enters the lock but doesn\'t turn.',
-                                            "effects": None
-                                           },
-                    ('flame', 'solder'): {"produces": None,
-                                          "message": 'The key enters the lock but doesn\'t turn.',
-                                          "effects": {'brass_key_piece_1': 'deactivate',
-                                                      'brass_key_piece_2': 'deactivate',
-                                                      'brass_key_full': 'activate'}
+                    ('lighter', 'solder'): {"message": 'The key enters the lock but doesn\'t turn.',
+                                            "effects": {'Metal_key_fragment_1': 'deactivate',
+                                                        'Metal_key_fragment_2': 'deactivate',
+                                                        'Metal_key_full': 'activate'}
+                                          },
+                    ('flame', 'solder'): {"message": 'The key enters the lock but doesn\'t turn.',
+                                          "effects": {'Metal_key_fragment_1': 'deactivate',
+                                                      'Metal_key_fragment_2': 'deactivate',
+                                                      'Metal_key_full': 'activate'}
                                           },
                    },
-    'combinations': [],
-    'effects':[]
+    'combinations': {},
+    'effects':{}
     },
-    'brass_key_piece_2': {
-    'name': 'brass_key_piece_2',
-    'display_name':'Brass key fragment 2',
+    'Metal_key_fragment_2': {
+    'name': 'Metal Key Fragment 2',
     'parent_item': None,
     'is_storable': True,
     'is_active': False,
-    'item_description': 'Part of the teeth section of a brass key, apparently snapped off the main section.',
+    'item_description': 'Part of the teeth section of a metal key.',
     'item_writing': 'There\'s nothing to read.',
-    'attributes': {"teeth": 'Some of the teeth appear to have been snapped off cleanly.'},
-    'interactions':{'Brass Lock': {"produces": None,
-                                    "message": 'The key turns three times and produces a satisfying mechanical click, popping the lock open',
-                                    "effects": {"deactivate": "brass_lock"}
-                                   }},
-    'combinations': [],
-    'effects':[]
+    'attributes': {"teeth": 'These teeth appear to have been snapped off cleanly from the main section.'},
+    'interactions':{'Metal Lock': {"message": 'The teeth section slides into the lock but you\'re unable to retrieve it.',
+                                   "effects": {'Metal Key Fragment 2': 'deactivate',
+                                               'Metal lock with key fragment 2': 'activate'}
+                                   },
+                    ('lighter', 'solder'): {"message": 'The key enters the lock but doesn\'t turn.',
+                                            "effects": {'Metal_key_fragment_1': 'deactivate',
+                                                        'Metal_key_fragment_2': 'deactivate',
+                                                        'Metal_key_full': 'activate'}
+                                          },
+                    ('flame', 'solder'): {"message": 'The key enters the lock but doesn\'t turn.',
+                                          "effects": {'Metal_key_fragment_1': 'deactivate',
+                                                      'Metal_key_fragment_2': 'deactivate',
+                                                      'Metal_key_full': 'activate'}
+                                          },
+                   },
+    'combinations': {},
+    'effects':{}
     },
-    'brass_key_full': {
-    'name': 'brass_key_full',
-    'display_name':'Brass key',
+    'Metal_key': {
+    'name': 'Metal key',
     'parent_item': None,
     'is_storable': True,
     'is_active': False,
-    'item_description': 'Part of the teeth section of a brass key, apparently snapped off the main section.',
+    'item_description': 'A metal key, the teeth have been repaired by soldering them back to the main section.',
     'item_writing': 'There\'s nothing to read.',
     'attributes': {"teeth": 'The section of the teeth that were snapped off have been repaired with solder.'},
-    'interactions':{'Brass Lock': {"produces": None,
-                                    "message": 'The key turns three times and produces a satisfying mechanical click, popping the lock open',
-                                    "effects": {"deactivate": "brass_lock"}
+    'interactions':{'Metal Lock': {"message": 'The key turns three times and produces a satisfying mechanical click, popping the lock open',
+                                    "effects": {"deactivate": "Metal_lock"}
                                    }},
-    'combinations': [],
-    'effects':[]
+    'combinations': {},
+    'effects':{}
+    },
+    'Metal_Lock': {
+    'name': 'Metal Lock',
+    'parent_item': None,
+    'is_storable': False,
+    'is_active': False,
+    'item_description': 'A plain Metal lock',
+    'item_writing': 'There\'s nothing to read.',
+    'attributes': {'Key hole': ''},
+    'interactions': {},
+    'combinations': {},
+    'effects':{}
+    },
+    'Metal lock with key fragment 2': {
+    'name': 'Metal lock with key fragment 2',
+    'parent_item': None,
+    'is_storable': False,
+    'is_active': False,
+    'item_description': 'A plain Metal lock',
+    'item_writing': 'There\'s nothing to read.',
+    'attributes': {'Key hole': ''},
+    'interactions':{'Gray metal chunk': {"message": 'The teeth of the key ',
+                                         "effects": {"deactivate": "Metal_lock"}
+                                        }},
+    'combinations': {},
+    'effects':{}
+    },
+    # 'Metal_Wire': {
+    # },
+    'Wooden cube': {
+    'name': 'Wooden cube',
+    'parent_item': None,
+    'is_storable': True,
+    'is_active': False,
+    'item_description': 'A smooth, wooden cube with sides roughly 3 inches long. It appears to be made of mahogany.',
+    'item_writing': 'There\'s nothing to read.',
+    'attributes': {'bottom': {'message': 'There is a square seam in the center of one face, with sides measuring roughly 1 inch.'},
+                   'seam': {'message': 'The seam is very tight, almost unnoticable. When pushed it does not budge.'
+                           }},
+    'interactions':{'Gray metal chunk': {"message": 'The gray metal bar abruptly clings to the cube in the area of the seam.\nWhen pulled, a rectangular section of the cube is comes with it.\n This section of the cube has been hollowed-out revealing a vile of yellow liquid.',
+                                         "effects": {'Vial':'activate'}}},
+    'combinations': None,
+    'effects': None
+    },
+    'Vial': {
+    'name': '',
+    'parent_item': None,
+    'is_storable': True,
+    'is_active': False,
+    'item_description': '',
+    'item_writing': 'There\'s nothing to read.',
+    'attributes': {'': {'message': ''}
+                       },
+    'interactions':{'': {"message": '',
+                         "effects": {'':'activate'}
+                         }},
+    'combinations': {'': {"message": '',
+                         "effects": {'':'activate'}
+                         }},
+    'effects': None
     }
-    # 'wooden_cube': {
-    # 'name': 'wooden_cube',
-    # 'display_name': 'Wooden cube',
+    }
+
+## Blank item:
+    # '': {
+    # 'name': '',
     # 'parent_item': None,
     # 'is_storable': True,
     # 'is_active': False,
-    # 'item_description': 'A smooth, wooden cube with sides roughly 3 inches long.',
+    # 'item_description': '',
     # 'item_writing': 'There\'s nothing to read.',
-    # 'item_writing': 'It appears to be made of mahogany.\nThere is a square seam in the center of one face, with sides measuring roughly 1 inch.',
-    # 'attributes': {'seam': {'item_writing_physical': 'The seam is very tight, almost unnoticable. When pushed it does not budge.',
-    #                         'magnet': 'The magnet abruptly clings to the cube in the area of the seam. When pulled, a rectangular section of the cube is removed, revealing a hollowed-out section of the piece you removed.'}},
-    # 'interactions':{'gray_metal_cube': {"produces": None,
-    #                                     "message": '',
-    #                                     "effects": {"activate":''}}},
-    # 'combinations': None,
+    # 'attributes': {'': {'message': ''}
+    #                    },
+    # 'interactions':{'': {"message": '',
+    #                      "effects": {'':'activate'}
+    #                      }},
+    # 'combinations': {'': {"message": '',
+    #                      "effects": {'':'activate'}
+    #                      }},
     # 'effects': None
     # }
-    }
