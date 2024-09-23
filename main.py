@@ -1,6 +1,11 @@
 from rooms import rooms
 from objects import items
-from classes import *
+from classes.item import Item
+from classes.player import Player
+from classes.room import Room
+from classes.hazard import Hazard
+from classes.map import Map
+from classes.game import Game
 
 if __name__ == '__main__':
     debug = True
