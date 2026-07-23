@@ -2,15 +2,19 @@ import logging
 import os
 import time
 from rooms_game.item import Item
+from rooms_game.occupant import GameContext
+from rooms_game.occupant_resolver import OccupantResolver
 
 class Game:
     '''The main class in the game.'''
 
-    def __init__(self, map, player, debug=False) -> None:
+    def __init__(self, map, player, hazards=None, debug=False) -> None:
         if debug: 
             self.logger = logging.Logger('debug_logger')
         self.map = map
         self.player = player
+        self.resolver = OccupantResolver(map, player.items, hazards)
+        self.ctx = GameContext(map, player)
         self.main_menu = {
             'input_message': '\nWhat do you want to do?',
             'options': {
@@ -173,34 +177,17 @@ class Game:
     def handle_move(self, direction):
         '''Step one space, then resolve whatever the player landed on.'''
         self.clear_screen()
-        occupant = self.map.move(direction)
-        if occupant is None:
+        occupant_name = self.map.move(direction)
+        if occupant_name is None:
             return
-        self.resolve_space(occupant)
+        self.resolve_space(occupant_name)
 
-    def resolve_space(self, occupant):
-        '''Single place where landing on an occupied space is interpreted:
-           a door (Entrance/Exit) or an item. Hazards will slot in here too.'''
-        if occupant in ('Entrance', 'Exit'):
-            self.handle_door(occupant)
-        else:
-            item = self.player.items[occupant]
-            print(f'You found a {item.display_name}!\n{item.item_description}')
-            item.activate()
-
-    def handle_door(self, door_label):
-        '''Offer to walk through a door. Passing through is always a choice.'''
-        portal = self.map.destination(door_label)
-        if not portal:
-            print('You have reached a heavy door, but it will not open. Not yet.')
-            return
-        answer = input('You see a door. Walk through it? (y/n)\n').strip().lower()
-        if answer in ('y', 'yes'):
-            room = self.map.transition(portal)
-            self.clear_screen()
-            print(room.enter_message)
-        else:
-            print('You step back from the door.')
+    def resolve_space(self, occupant_name):
+        '''Single seam where landing on an occupied space is interpreted. The
+           resolver turns the stored name into the Occupant that knows how to
+           behave (item, door, or hazard); the occupant then acts on the context.'''
+        occupant = self.resolver.resolve(occupant_name)
+        occupant.resolve(self.ctx)
 
     def game(self):
         '''The main game loop'''
@@ -235,5 +222,21 @@ class Game:
                     if item_instructions == 'main menu':
                         break
                     self.parse_item_instructions(item_instructions)
+
+            # A hazard or the final door may have ended the game while resolving a
+            # space. Honour that here so the loop exits with the right verdict.
+            if self.ctx.game_over:
+                game_in_progress = False
+
+        self.announce_ending()
+
+    def announce_ending(self):
+        '''Print the reason the game ended, if a hazard or the final door set one.'''
+        if self.ctx.end_reason:
+            print(f'\n{self.ctx.end_reason}')
+            if self.ctx.won:
+                print('\n*** YOU WIN ***')
+            else:
+                print('\n*** GAME OVER ***')
 
             

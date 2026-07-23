@@ -1,6 +1,7 @@
 from rooms_game.content.rooms import rooms
 from rooms_game.content.objects import items
 from rooms_game.content.recipes import recipes
+from rooms_game.content.hazards import hazards
 from rooms_game.item import Item
 from rooms_game.player import Player
 from rooms_game.room import Room
@@ -18,7 +19,7 @@ def main():
         items_dict[name] = Item(item_dict, id=name)
     recipe_engine = RecipeEngine(recipes, items_dict)
     player = Player(items_dict, recipe_engine)
-    Game(game_map, player, debug)
+    Game(game_map, player, hazards, debug)
 
 
 if __name__ == '__main__':
