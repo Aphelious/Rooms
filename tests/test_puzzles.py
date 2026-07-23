@@ -28,6 +28,7 @@ class TestPuzzles(unittest.TestCase):
         items_dict, player = build()
         game = ParserlessGame(player)
         # Discovery activates both halves.
+        items_dict['Torn Paper 1'].activate()
         items_dict['Torn Paper 2'].activate()
         game.parse_item_instructions('combine torn paper (top half) with torn paper (bottom half)')
         self.assertFalse(items_dict['Torn Paper 1'].is_active)
@@ -46,6 +47,7 @@ class TestPuzzles(unittest.TestCase):
     def test_burn_consumes_paper_keeps_lighter(self):
         items_dict, player = build()
         game = ParserlessGame(player)
+        items_dict['Torn Paper 1'].activate()  # picked up
         game.parse_item_instructions('use lighter on torn paper (top half)')
         self.assertFalse(items_dict['Torn Paper 1'].is_active)
         self.assertTrue(items_dict['Lighter'].is_active)  # catalyst survives
@@ -75,6 +77,7 @@ class TestPuzzles(unittest.TestCase):
     def test_inspect_item_and_part(self):
         items_dict, player = build()
         game = ParserlessGame(player)
+        items_dict['Torn Paper 1'].activate()  # picked up
         # inspect whole item
         self.assertTrue(player.describe_item('lighter'))
         # inspect a named part
@@ -82,6 +85,7 @@ class TestPuzzles(unittest.TestCase):
 
     def test_read(self):
         items_dict, player = build()
+        items_dict['Torn Paper 1'].activate()  # picked up
         self.assertTrue(player.read_item('torn paper (top half)'))
 
     def test_unknown_command_rejected(self):
