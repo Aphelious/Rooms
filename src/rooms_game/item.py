@@ -1,7 +1,10 @@
 class Item:
-    def __init__(self, dict):
+    def __init__(self, dict, id=None):
+        # Canonical, stable identity used for all lookups and cross-references.
+        # Falls back to the item's name if no explicit id/key is provided.
+        self.id = id or dict.get("id") or dict.get("name")
         self.name = dict.get("name", None)
-        self.display_name = dict.get("display_name", None)
+        self.display_name = dict.get("display_name", None) or self.name
         self.parent_item = dict.get("parent_item", None)
         self.is_storable = dict.get("is_storable", None)
         self.is_active = dict.get("is_active", None)

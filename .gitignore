@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+scratch*.py
+.venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.ai-compass.conf
+# kargo-ai-compass (auto-managed, .cursor)
+.cursor/rules/kargo-ai-compass-*.md
+.cursor/rules/kargo-ai-compass-*.mdc
+.cursor/skills/

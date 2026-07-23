@@ -3,14 +3,14 @@ rooms = [{'room_number': 1,
           'enter_message': 'You enter a dark, dank stone room with very little light. It smells of death.', 
           'wall_message': 'There\'s no where to go, just the damp stone wall',
           'empty_space_message': 'There\'s nothing here',
-          'objects': ['torn_paper_1']
+          'objects': ['Torn Paper 1', 'Metal Key Fragment 1', 'Metal Wire']
           },
           {'room_number': 2, 
           'name': 'Room 2',
           'enter_message': 'You enter a wide open room with windows high above. Pale yellow light beams through',
           'wall_message': 'There\'s no where to go, just the smooth limestone wall.',
           'empty_space_message': 'There\'s nothing here',
-          'objects': ['torn_paper_2']
+          'objects': ['Torn Paper 2', 'Metal Key Fragment 2', 'Metal Lock']
           }]
         #   {'room_number': 3, 
         #   'name': 'room3',

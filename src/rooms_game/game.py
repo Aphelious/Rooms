@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from .item import Item
+from rooms_game.item import Item
 
 class Game:
     '''The main class in the game.'''
@@ -66,79 +66,88 @@ class Game:
                 print(f'{k}. {v}')
 
     
-    def parse_item_instructions(self, raw_item_instructions:str):
-        # Preformat the input:
-        sanitized_item_instructions = raw_item_instructions.lower()
-        tokens = sanitized_item_instructions.split(' ')
-        verbs = {'read', 'inspect', 'use', 'combine'}
-        prepositions = {'on', 'with', 'and', 'of'}
-        descriptive_words = {'side', 'back', 'top', 'bottom', 'inside', 'outside'}
+    # Vocabulary the parser understands. Verbs map to handler methods; the
+    # connector words split a command into separate noun phrases. Adding a new
+    # verb is a one-line change here plus its handler - no branching sprawl.
+    VERBS = {'read', 'inspect', 'use', 'combine'}
+    CONNECTORS = {'on', 'with', 'and'}
 
-        # If one and only one word in the instructions isn't a predefined verb, reject:
-        if not verbs.intersection(tokens) or not len(verbs.intersection(tokens)) == 1:
-            print(f'"{raw_item_instructions}" is not possible.')
-
-        # Consider what is actually active for the player:
-        active_objects = self.player.get_active_items() # dict
-        active_object_names = [x.lower() for x in active_objects.keys()]
-        instructions_objects = [x for x in tokens if x not in verbs]
-        instructions_objects = [x for x in instructions_objects if x not in prepositions]
-        instructions_objects = [x for x in instructions_objects if x not in descriptive_words]
-
-        invalid_objects = [x for x in instructions_objects if x not in active_object_names]
-        # breakpoint()
-        if invalid_objects:
-            print(f'"{raw_item_instructions}" is not possible.')
-
-        if tokens[0] == 'read' and tokens[1] in active_object_names and len(tokens) == 2:
-            subject = tokens[1]
-            self.clear_screen()
-            print(active_objects[subject.title()].item_writing)
-            return
-        
-        elif tokens[0] == 'inspect':
-             self.inspect(tokens, prepositions, descriptive_words, active_objects,
-                          active_object_names, instructions_objects)
-             return
-
-        elif tokens[0] == 'use':
-            pass 
-        
-        elif tokens[0] == 'combine':
-            pass 
-
-        else:
-            print(f'"{raw_item_instructions}" is not possible.')
+    def parse_item_instructions(self, raw_item_instructions: str):
+        tokens = raw_item_instructions.lower().strip().split()
+        if not tokens:
+            self.reject(raw_item_instructions)
             return
 
-        # Read needs: Read, active_object    
-        # Inspect needs: Inspect, descriptive word, preposition, active_object to be valid
-        # Use needs: Use, active_object, on|with, active_object, on, active_object
-        # Combine needs: Combine, active_object, with, active_object, with... n number of times -dont have this funtionality just yet
-        # Need a valid combination of verbs and item names, or verbs-item names-attributes to work
-        
-        
-    def inspect(self, tokens, prepositions, descriptive_words, active_objects,
-                active_object_names, instructions_objects):
+        verb, rest = tokens[0], tokens[1:]
+        if verb not in self.VERBS:
+            self.reject(raw_item_instructions)
+            return
 
-        # If asked to inspect the item itself, print the item description:
-        if len(tokens) == 2 and tokens[1] in active_object_names:
-            self.clear_screen()
-            subject_item = active_objects[tokens[1].title()]
-            print(subject_item.item_description)
+        handler = {
+            'read': self.handle_read,
+            'inspect': self.handle_inspect,
+            'use': self.handle_use,
+            'combine': self.handle_combine,
+        }[verb]
+        handler(rest, raw_item_instructions)
 
-        # If asked to inspect a part of the item, check to see if there's an attibute associated:
-        elif tokens[1] in descriptive_words and tokens[2] in prepositions and tokens[3] in active_object_names:
-            subject_item = active_objects[tokens[1].title()]
-            result = subject_item.attributes.get([f'{tokens[1]} {tokens[2]} {tokens[3]}'])
-            if not result:
-                print('There\'s nothing there.')
+    @staticmethod
+    def reject(raw):
+        print(f'"{raw}" is not possible.')
+
+    @classmethod
+    def split_phrases(cls, tokens):
+        '''Split a token list into noun phrases around connector words
+           (on/with/and), dropping the connectors. Multi-word item names survive
+           because we only break on connectors, never on plain spaces.'''
+        phrases, current = [], []
+        for token in tokens:
+            if token in cls.CONNECTORS:
+                if current:
+                    phrases.append(' '.join(current))
+                    current = []
+            else:
+                current.append(token)
+        if current:
+            phrases.append(' '.join(current))
+        return phrases
+
+    def handle_read(self, rest, raw):
+        self.clear_screen()
+        if not self.player.read_item(' '.join(rest)):
+            self.reject(raw)
+
+    def handle_inspect(self, rest, raw):
+        self.clear_screen()
+        # "inspect <part> of <item>" -> inspect a named part.
+        if 'of' in rest:
+            idx = rest.index('of')
+            part = ' '.join(rest[:idx])
+            item = ' '.join(rest[idx + 1:])
+            if self.player.inspect_attribute(item, part):
                 return
-            elif type(result) == str:
-                print(result)
-                return
-            elif type(result) == Item:
-                pass
+            print('There\'s nothing there.')
+            return
+        # "inspect <item>" -> print the item description.
+        if self.player.describe_item(' '.join(rest)):
+            return
+        self.reject(raw)
+
+    def handle_use(self, rest, raw):
+        phrases = self.split_phrases(rest)
+        if len(phrases) < 2:
+            self.reject(raw)
+            return
+        self.clear_screen()
+        self.player.combine_items(*phrases)
+
+    def handle_combine(self, rest, raw):
+        phrases = self.split_phrases(rest)
+        if len(phrases) < 2:
+            self.reject(raw)
+            return
+        self.clear_screen()
+        self.player.combine_items(*phrases)
 
 
 
