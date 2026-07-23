@@ -10,7 +10,7 @@ rooms = [{'room_number': 1,
           'enter_message': 'You enter a wide open room with windows high above. Pale yellow light beams through',
           'wall_message': 'There\'s no where to go, just the smooth limestone wall.',
           'empty_space_message': 'There\'s nothing here',
-          'objects': ['Torn Paper 2', 'Metal Key Fragment 2', 'Metal Lock']
+          'objects': ['Torn Paper 2', 'Metal Key Fragment 2', 'Metal Lock', 'Rune Trap', 'Trap Door']
           }]
         #   {'room_number': 3, 
         #   'name': 'room3',

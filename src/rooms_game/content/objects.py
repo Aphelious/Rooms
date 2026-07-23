@@ -40,7 +40,7 @@ items = {
     'display_name': 'torn paper (top half)',
     'parent_item': None,
     'is_storable': True,
-    'is_active': True,
+    'is_active': False,
     'is_hazard': False,
     'item_description': 'An old, stained piece of parchment; a section is torn away along the bottom.',
     'item_writing': 'It reads: "I don\'t have enough time to explain everything, just know this: '
