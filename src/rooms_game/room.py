@@ -94,6 +94,12 @@ class Room:
             return False
 
 
+    def clear_space(self, space:dict) -> None:
+        '''Remove whatever occupies a space (e.g. an item the player just picked
+           up), leaving empty floor behind so the space is not re-triggered.'''
+        self.object_locations.pop(self.convert_space_dict_to_tuple(space), None)
+
+
     def convert_space_dict_to_tuple(self, space):
         row = space["Row"]
         col = space["Column"]
