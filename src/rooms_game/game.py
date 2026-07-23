@@ -65,6 +65,15 @@ class Game:
             else:
                 print(f'{k}. {v}')
 
+    @staticmethod
+    def display_move_menu():
+        '''Render the movement options as a compass, matching the numpad layout.'''
+        print('\nWhich direction do you want to move?\n')
+        print('       8. North')
+        print('4. West       6. East')
+        print('       2. South')
+        print('\nm. Main menu')
+
     
     # Vocabulary the parser understands. Verbs map to handler methods; the
     # connector words split a command into separate noun phrases. Adding a new
@@ -158,6 +167,41 @@ class Game:
         else:
             os.system('cls')
 
+    # Numpad-style movement keys -> direction names understood by Map.move().
+    MOVE_KEYS = {'8': 'north', '6': 'east', '2': 'south', '4': 'west'}
+
+    def handle_move(self, direction):
+        '''Step one space, then resolve whatever the player landed on.'''
+        self.clear_screen()
+        occupant = self.map.move(direction)
+        if occupant is None:
+            return
+        self.resolve_space(occupant)
+
+    def resolve_space(self, occupant):
+        '''Single place where landing on an occupied space is interpreted:
+           a door (Entrance/Exit) or an item. Hazards will slot in here too.'''
+        if occupant in ('Entrance', 'Exit'):
+            self.handle_door(occupant)
+        else:
+            item = self.player.items[occupant]
+            print(f'You found a {item.display_name}!\n{item.item_description}')
+            item.activate()
+
+    def handle_door(self, door_label):
+        '''Offer to walk through a door. Passing through is always a choice.'''
+        portal = self.map.destination(door_label)
+        if not portal:
+            print('You have reached a heavy door, but it will not open. Not yet.')
+            return
+        answer = input('You see a door. Walk through it? (y/n)\n').strip().lower()
+        if answer in ('y', 'yes'):
+            room = self.map.transition(portal)
+            self.clear_screen()
+            print(room.enter_message)
+        else:
+            print('You step back from the door.')
+
     def game(self):
         '''The main game loop'''
 
@@ -166,69 +210,30 @@ class Game:
         self.clear_screen()
         print('Welcome to the game!\n')
         print(self.map.current_room.enter_message)
-        while game_in_progress != False:
+        while game_in_progress:
             self.display_menu(self.main_menu)
             selection = input()
 
-            if selection == '1':
+            if selection == 'x':
                 self.clear_screen()
-                self.display_menu(self.move_menu)
+                print('You give up on escaping. Goodbye.')
+                game_in_progress = False
+
+            elif selection == '1':
+                self.clear_screen()
+                self.display_move_menu()
                 selection = input()
-                if selection == '8':
-                    self.clear_screen()
-                    object_name = self.map.move_player('north')
-                    if not object_name:
-                        continue
-                    elif object_name in ('Entrance', 'Exit'):
-                        print('You see a door, walk through it?')
-                    else:
-                        object = self.player.items[object_name]
-                        print(f'You found a {object.display_name}!\n{object.item_description}')
-                        object.activate()
-                if selection == '6':
-                    self.clear_screen()
-                    object_name = self.map.move_player('east')
-                    if not object_name:
-                        continue
-                    elif object_name in ('Entrance', 'Exit'):
-                        print('You see a door, walk through it?')
-                    else:
-                        object = self.player.items[object_name]
-                        print(f'You found a {object.display_name}!\n{object.item_description}')
-                        object.activate()
-                if selection == '2':
-                    self.clear_screen()
-                    object_name = self.map.move_player('south')
-                    if not object_name:
-                        continue
-                    elif object_name in ('Entrance', 'Exit'):
-                        print('You see a door, walk through it?')
-                    else:
-                        object = self.player.items[object_name]
-                        print(f'You found a {object.display_name}!\n{object.item_description}')
-                        object.activate()
-                if selection == '4':
-                    self.clear_screen()
-                    object_name = self.map.move_player('west')
-                    if not object_name:
-                        continue
-                    elif object_name in ('Entrance', 'Exit'):
-                        print('You see a door, walk through it?')
-                    else:
-                        object = self.player.items[object_name]
-                        print(f'You found a {object.display_name}!\n{object.item_description}')
-                        object.activate()
-                    
-            if selection == '2':
+                if selection in self.MOVE_KEYS:
+                    self.handle_move(self.MOVE_KEYS[selection])
+                # 'm' (or anything else) simply falls back to the main menu.
+
+            elif selection == '2':
                 self.clear_screen()
                 while True:
                     self.player.check_inventory()
-                    # self.display_menu(self.inventory_menu)
                     item_instructions = input('\nWhat do you want to do in the inventory? (type "main menu" to go back)\nYou can Read, Inspect, Use, or Combine items.\n\n')
                     if item_instructions == 'main menu':
-                        # self.clear_screen()
                         break
                     self.parse_item_instructions(item_instructions)
-                    continue
 
             
